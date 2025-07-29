@@ -4,7 +4,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const VALID_TOKEN = "CaGh1QG6JhOpHWQCrsC91HvgXRsz";
+const VALID_TOKEN = "12345678";
 
 app.get('/pdf', (req, res) => {
   const authHeader = req.headers['authorization'];
