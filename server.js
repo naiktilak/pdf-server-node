@@ -1,38 +1,32 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
-
-const PDF_PATH = path.join(__dirname, "sample.pdf");
+const PORT = process.env.PORT || 3000;
 const VALID_TOKEN = "CaGh1QG6JhOpHWQCrsC91HvgXRsz";
 
-// Middleware to check Bearer Token
-app.use("/pdf", (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).send("Unauthorized: Missing token");
+app.get('/pdf', (req, res) => {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== VALID_TOKEN) {
+    return res.status(401).send('Unauthorized');
   }
 
-  const token = authHeader.split(" ")[1];
-  if (token !== VALID_TOKEN) {
-    return res.status(403).send("Forbidden: Invalid token");
+  const filePath = path.join(__dirname, 'sample.pdf');
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('PDF file not found');
   }
 
-  next();
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'inline; filename=sample.pdf');
+  fs.createReadStream(filePath).pipe(res);
 });
 
-// Serve the PDF
-app.get("/pdf", (req, res) => {
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", "inline; filename=sample.pdf");
-
-  const fileStream = fs.createReadStream(PDF_PATH);
-  fileStream.pipe(res);
+app.get('/', (req, res) => {
+  res.send('Server is running. Try GET /pdf with a Bearer token.');
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`PDF server running at http://localhost:${PORT}/pdf`);
+  console.log(`Server is running on port ${PORT}`);
 });
